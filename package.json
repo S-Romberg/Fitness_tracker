@@ -8,7 +8,8 @@
     "bootstrap": "^4.2.1",
     "prop-types": "^15.6.2",
     "react": "^16.7.0",
-    "react-dom": "^16.7.0"
+    "react-dom": "^16.7.0",
+    "recharts": "^1.4.2"
   },
   "devDependencies": {
     "webpack-dev-server": "2.11.2"

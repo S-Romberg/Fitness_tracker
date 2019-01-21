@@ -3,8 +3,10 @@ import ReactDOM from 'react-dom'
 import 'bootstrap/dist/css/bootstrap.css'
 import axios from 'axios'
 
+
 import Lifetime from './Lifetime'
 import Badges from './Badges'
+import TimeBarChart from './TimeBarChart'
 
 class Dashboard extends React.Component {
     constructor(props){
@@ -22,7 +24,9 @@ class Dashboard extends React.Component {
                     total: {activeScore: -1, caloriesOut: -1, distance: 1.93, steps: 1565},
                     tracker: {activeScore: -1, caloriesOut: -1, distance: 0, steps: 0}
                 }},
-            badges: {badges: [{shortName: "Boat Shoe", image100px: "https://static0.fitbit.com/images/badges_new/100px/badge_daily_steps5k.png/", description: "5,000 steps in a day"}]}
+            badges: {badges: [{shortName: "Boat Shoe", image100px: "https://static0.fitbit.com/images/badges_new/100px/badge_daily_steps5k.png/", description: "5,000 steps in a day"}]},
+            steps: {},
+            distance: {}
         }
     }
 
@@ -42,11 +46,13 @@ class Dashboard extends React.Component {
 
     componentDidMount(){
         if(window.location.hash){
-            let fitbitToken = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyMkQ5VFMiLCJzdWIiOiI3OFRISEoiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJyc29jIHJhY3QgcnNldCBybG9jIHJ3ZWkgcmhyIHJwcm8gcm51dCByc2xlIiwiZXhwIjoxNTQ4NzAzMDk2LCJpYXQiOjE1NDgwOTg0NTN9.szMvnNqyaeg703Cyljz-lbJXBrWcM_P2qNeoSx5XQPw"
+            let fitbitToken = window.location.hash.slice(1).split("&")[0].replace("access_token=", "")
             this.setState({loggedIn: true})
-            // this.fetchFitbitData('https://api.fitbit.com/1/user/-/profile.json', fitbitToken, 'user')
-            // this.fetchFitbitData('https://api.fitbit.com/1/user/-/activities.json', fitbitToken, 'lifetimeStats')
-            // this.fetchFitbitData('https://api.fitbit.com/1/user/-/badges.json', fitbitToken, 'badges')
+            this.fetchFitbitData('https://api.fitbit.com/1/user/-/profile.json', fitbitToken, 'user')
+            this.fetchFitbitData('https://api.fitbit.com/1/user/-/activities.json', fitbitToken, 'lifetimeStats')
+            this.fetchFitbitData('https://api.fitbit.com/1/user/-/badges.json', fitbitToken, 'badges')
+            this.fetchFitbitData('https://api.fitbit.com/1/user/-/activities/steps/date/today/1m.json', fitbitToken, 'steps')
+            this.fetchFitbitData('https://api.fitbit.com/1/user/-/activities/distance/date/2014-04-30/1m.json', fitbitToken, 'distance')
 
         }
     }
@@ -55,9 +61,9 @@ class Dashboard extends React.Component {
         return (
             <div className='container'>
                 <header className='text-center'>
-                    <span className='float-right'>{this.state.user.user.displayName}</span>
                     <h1 className='page-header'>React-Rails Fitness</h1>
                     <p className='lead'>Your personal fitness dashboard</p>
+                    <span >{this.state.user.user.displayName}</span>
                 </header> 
                 {!this.state.loggedIn &&
                 <div className='text-center'>
@@ -72,23 +78,10 @@ class Dashboard extends React.Component {
                     </div>
 
                     <div className='col-lg-6'>
-                        <div className='card card-body'>
-                            <h6 className='card-title'>Steps</h6>
-                                <div className='card-text'></div>
-                        </div>
-
-                        <div className='card card-body'>
-                            <h6 className='card-title'>Distance(miles)</h6>
-                                <div className='card-text'></div>
-                        </div>
+						<TimeBarChart data={this.state.steps["activities-steps"]} title="Steps" yMax={8000} />
+						<TimeBarChart data={this.state.distance["activities-distance"]} title="Distance (miles)" yMax={6} />
                     </div>
 
-                    <div className='col-lg-2 col-lg-offset-1'>
-                        <div className='card card-body'>
-                            <h6 className='card-title'>Your Friends</h6>
-                                <div className='card-text'></div>
-                        </div>
-                    </div>
                    
                 </div>
 
