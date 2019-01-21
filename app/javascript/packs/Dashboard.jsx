@@ -3,39 +3,50 @@ import ReactDOM from 'react-dom'
 import 'bootstrap/dist/css/bootstrap.css'
 import axios from 'axios'
 
+import Lifetime from './Lifetime'
+import Badges from './Badges'
+
 class Dashboard extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            user: {},
+            user: {user: {age: 22, displayName: "Spencer R."}},
             loggedIn: false,
-            lifetimeBest: {},
-            lifetimeTotals: {}
+            lifetimeStats: {
+                best: {
+                    total: { 
+                        distance: {date: "2019-01-21", value: 1.93121},
+                        steps: {date: "2019-01-21", value: 1565}}
+                }, 
+                lifetime:{
+                    total: {activeScore: -1, caloriesOut: -1, distance: 1.93, steps: 1565},
+                    tracker: {activeScore: -1, caloriesOut: -1, distance: 0, steps: 0}
+                }},
+            badges: {badges: [{shortName: "Boat Shoe", image100px: "https://static0.fitbit.com/images/badges_new/100px/badge_daily_steps5k.png/", description: "5,000 steps in a day"}]}
         }
+    }
+
+    fetchFitbitData (url, fitbitToken, stateKey) {
+        axios({
+            method: 'get',
+            url: url,
+            headers: { 'Authorization': 'Bearer ' + fitbitToken},
+            mode: 'cors'
+        })
+        .then(response => {
+            console.log(response)
+            this.setState({[stateKey]: response.data})
+        })
+        .catch(error => console.log(error))
     }
 
     componentDidMount(){
         if(window.location.hash){
             let fitbitToken = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyMkQ5VFMiLCJzdWIiOiI3OFRISEoiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJyc29jIHJhY3QgcnNldCBybG9jIHJ3ZWkgcmhyIHJwcm8gcm51dCByc2xlIiwiZXhwIjoxNTQ4NzAzMDk2LCJpYXQiOjE1NDgwOTg0NTN9.szMvnNqyaeg703Cyljz-lbJXBrWcM_P2qNeoSx5XQPw"
-            console.log(fitbitToken)
-
-            axios({
-                method: 'get',
-                url: 'https://api.fitbit.com/1/user/-/profile.json',
-                headers: { 'Authorization': 'Bearer ' + fitbitToken},
-                mode: 'cors'
-            })
-            .then(response => this.setState({user: response.data.user, loggedIn: true}))
-            .catch(error => console.log(error))
-
-            axios({
-                method: 'get',
-                url: 'https://api.fitbit.com/1/user/-/activities.json',
-                headers: { 'Authorization': 'Bearer ' + fitbitToken},
-                mode: 'cors'
-            })
-            .then(response => this.setState({lifetimeBest: response.data.lifetime.tracker, lifetimeTotals: response.data.lifetime.total}))
-            .catch(error => console.log(error))
+            this.setState({loggedIn: true})
+            // this.fetchFitbitData('https://api.fitbit.com/1/user/-/profile.json', fitbitToken, 'user')
+            // this.fetchFitbitData('https://api.fitbit.com/1/user/-/activities.json', fitbitToken, 'lifetimeStats')
+            // this.fetchFitbitData('https://api.fitbit.com/1/user/-/badges.json', fitbitToken, 'badges')
 
         }
     }
@@ -44,7 +55,7 @@ class Dashboard extends React.Component {
         return (
             <div className='container'>
                 <header className='text-center'>
-                    <span className='float-right'>{this.state.user.displayName}</span>
+                    <span className='float-right'>{this.state.user.user.displayName}</span>
                     <h1 className='page-header'>React-Rails Fitness</h1>
                     <p className='lead'>Your personal fitness dashboard</p>
                 </header> 
@@ -55,20 +66,9 @@ class Dashboard extends React.Component {
                 }
                 <div className='row'>
                     <div className='col-lg-3'>
-                        <div className='card card-body'>
-                            <h4 className='card-title'>Lifetime Stats</h4>
-                                <h6 className='card-text'>Distance:</h6>
-                                <p>Total: {this.state.lifetimeTotals.distance}</p>
-                                <p>Best: {this.state.lifetimeBest.distance} </p>
-                                <h6 className='card-text'>Steps:</h6>
-                                <p>Total: {this.state.lifetimeTotals.steps}</p>
-                                <p>Best: {this.state.lifetimeBest.steps} </p>
-                        </div>
+                        {this.state.lifetimeStats.lifetime && <Lifetime lifetimeStats={this.state.lifetimeStats} />}
+                        <Badges badges={this.state.badges.badges}/>
 
-                        <div className='card card-body'>
-                            <h4 className='card-title'>Badges</h4>
-                                <div className='card-text'></div>
-                        </div>
                     </div>
 
                     <div className='col-lg-6'>
